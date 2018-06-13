@@ -80,4 +80,3 @@ async def on_message(message):
             new_role_name = cr_chk.name
             msg = await client.send_message(message.channel, 'The role "' + new_role_name + '" was created!')
 
-client.run('MjMwNzIzMzYxMDA3NzMwNjg5.DcUV4g.jRhX-_9G1G42Fds7sOlHjH4rgvQ')
