@@ -4,6 +4,7 @@ import logging
 from discord.utils import get
 
 client = discord.Client()
+rainbow_flag = True
 
 @client.event
 async def on_ready():
@@ -11,56 +12,15 @@ async def on_ready():
     print('Username: ' + client.user.name)
     print('ID: ' + client.user.id)
     print('------')
-#    rainbow_flag = 1
+
 
 @client.event
 async def on_message(message):
+
+    global rainbow_flag
+
     if message.author == client.user:
         return
-
-    """
-    if message.content.startswith('!hello'):
-        msg = 'Hello {0.author.mention}'.format(message)
-        await client.send_message(message.channel, msg)
-        print('hello init')
-        print(message.server.id)
-
-    if message.content.startswith('!run'):
-        msg = await client.send_message(message.channel, 'Beginning...')
-        print('run init')
-        server_name = message.server
-        print(len(server_name.roles))
-
-    if message.content.startswith('!go'):
-        msg = await client.send_message(message.channel, 'Rainbooming...')
-        sName = message.server
-        print('sName: ')
-        print(sName)
-        rName = get(message.server.roles, name='RAINBOW')
-        rN = rName.name
-        rID = rName.id
-        rC = rName.color
-        print('name: ' + rN)
-        print('rID: ' + rID)
-        print('rC: ')
-        print(rC)
-        await asyncio.sleep(1)
-        await client.edit_role(sName, rName, color = discord.Color.red())
-        await asyncio.sleep(1)
-        await client.edit_role(sName, rName, color = discord.Color.orange())
-        await asyncio.sleep(1)
-        await client.edit_role(sName, rName, color = discord.Color.gold())
-        await asyncio.sleep(1)
-        await client.edit_role(sName, rName, color = discord.Color.green())
-        await asyncio.sleep(1)
-        await client.edit_role(sName, rName, color = discord.Color.teal())
-        await asyncio.sleep(1)
-        await client.edit_role(sName, rName, color = discord.Color.blue())
-        await asyncio.sleep(1)
-        await client.edit_role(sName, rName, color = discord.Color.purple())
-        print('DONE')
-    """
-
 
     if message.content.startswith('!makerole'):
         msg = await client.send_message(message.channel, 'Making rainbow role...')
@@ -68,7 +28,7 @@ async def on_message(message):
         server_name = message.server
         existance_check = discord.utils.get(message.server.roles, name=role_name)
         if existance_check is None:
-            raibow_role = await client.create_role(server_name, name=role_name, permissions=discord.Permissions(permissions=0))
+            raibow_role = await client.create_role(server_name, name=role_name, permissions=discord.Permissions.none())
             await client.move_role(server_name, raibow_role, (len(server_name.roles)-1))
         else:
             msg = await client.send_message(message.channel, 'The role is already existing...')
@@ -79,34 +39,45 @@ async def on_message(message):
         msg = await client.send_message(message.channel, 'RAINBOOMING...')
         sName = message.server
         rName = get(message.server.roles, name='Rainbow')
-        cd = 0.2
-        while 1:
-            await client.edit_role(sName, rName, color=discord.Color(16711680))
-            await asyncio.sleep(cd)
-            await client.edit_role(sName, rName, color=discord.Color(16737536))
-            await asyncio.sleep(cd)
-            await client.edit_role(sName, rName, color=discord.Color(16776448))
-            await asyncio.sleep(cd)
-            await client.edit_role(sName, rName, color=discord.Color(4718337))
-            await asyncio.sleep(cd)
-            await client.edit_role(sName, rName, color=discord.Color(54015))
-            await asyncio.sleep(cd)
-            await client.edit_role(sName, rName, color=discord.Color(32255))
-            await asyncio.sleep(cd)
-            await client.edit_role(sName, rName, color=discord.Color(6750463))
-            await asyncio.sleep(cd)
+        cd = 0.1
+        a = 0
+        if rainbow_flag == False:
+            rainbow_flag = True
 
-    """
+        #colorlist = [red > purple]
+        colorlist = [16711680, 16737536, 16776448, 4718337, 54015, 32255, 6750463, 0x2e3136]
+        #colorlist = [0x00FF00, 0x00FF1A, 0x00FF35, 0x00FF50, 0x00FF6B, 0x00FF86, 0x00FFA1, 0x00FFBB, 0x00FFD6, 0x00FFF1, 0x00F1FF, 0x00D6FF, 0x00BBFF, 0x00A1FF, 0x0086FF, 0x006BFF, 0x0050FF, 0x0035FF, 0x001AFF, 0x0000FF, 0x0000FF, 0x1A00FF, 0x3500FF, 0x5000FF, 0x6B00FF, 0x8600FF, 0xA100FF, 0xBB00FF, 0xD600FF, 0xF100FF, 0xFF00F1, 0xFF00D6, 0xFF00BB, 0xFF00A1, 0xFF0086, 0xFF006B, 0xFF0050, 0xFF0035, 0xFF001A, 0xFF0000, 0xFF0000, 0xFF1A00, 0xFF3500, 0xFF5000, 0xFF6B00, 0xFF8600, 0xFFA100, 0xFFBB00, 0xFFD600, 0xFFF100, 0xF1FF00, 0xD6FF00, 0xBBFF00, 0xA1FF00, 0x86FF00, 0x6BFF00, 0x50FF00, 0x35FF00, 0x1AFF00,]
+
+        while rainbow_flag:
+            if rainbow_flag == True:
+                a = a+1
+                print('cycle # '+ str(a) + ': ' + str(rainbow_flag))
+                for i in range(len(colorlist)):
+                    await client.edit_role(sName, rName, color=discord.Color(colorlist[i]))
+                    await asyncio.sleep(cd)
+            else:
+                return
+
     if message.content.startswith('!rstop'):
         msg = await client.send_message(message.channel, 'RAINBOOMING ended...')
-        rainbow_flag = 0
-    """
+        rainbow_flag = False
+        print('rstop: ' + str(rainbow_flag))
 
-"""
-role_name = 'RAINBOW'
-server = discord.utils.get(client.servers, id = server.id)
-current_role = discord.utils.get(client.server.roles, name = role_name)
-raibow_role = client.create_role(server, name = role_name)
-"""
+    if message.content.startswith('!rch'):
+        msg = await client.send_message(message.channel, '123')
+        print('rcheck: ' + str(rainbow_flag) + '-----')
+
+    if message.content.startswith('!cr'):
+        if message.content[4:].lower() == '':
+            msg = await client.send_message(message.channel, 'wrong name')
+        else:
+            cr_role = message.content[4:]
+            server_name = message.server
+            print(cr_role)
+            await client.create_role(server_name, name='⭐'+str(cr_role)+'⭐', permissions=discord.Permissions.none(), color=discord.Color(0xddc90d))
+            cr_chk = discord.utils.get(message.server.roles, name=cr_role)
+            print(cr_chk)
+            new_role_name = cr_chk.name
+            msg = await client.send_message(message.channel, 'The role "' + new_role_name + '" was created!')
 
 client.run('MjMwNzIzMzYxMDA3NzMwNjg5.DcUV4g.jRhX-_9G1G42Fds7sOlHjH4rgvQ')
