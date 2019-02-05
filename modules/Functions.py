@@ -37,7 +37,7 @@ def load_help_list():
 
 def load_bullying_phrases():
     bullying_phrases = {}
-    with open('locale/bullying'+localesign, encoding='utf-8') as file:
+    with open('locale/bullying'+localesign+'.txt', encoding='utf-8') as file:
         for line in file:
             key, value = line.split('+++')
             value = value.replace('\n', '')

@@ -34,7 +34,7 @@ class UtilityCommands:
             await bot.clear_last_selfmessage(self.client, msg, msg.channel)
         else:
             cnt = ctx.message.content.split(' ', 1).pop(1)
-            num = random.randint(1,(len(bullying)//2))
+            num = random.randint(1,((len(bullying)-2)//2))
             bullyline = 'bly' + str(num)
             bullyauth = 'auth' + str(num)
             bullyembed = discord.Embed(
