@@ -5,10 +5,7 @@ import modules.Functions as bot
 localesign = 'RU'
 
 # Getting locale text for replies
-f = open('locale/DBtext'+localesign+'/CutieMarksCommands', encoding='utf-8')
-DBtext = ['null']
-DBtext.extend(f.read().splitlines())
-f.close()
+DBtext = bot.load_locale('CutieMarksCommands')
 
 class CutieMarksCommands:
     def __init__(self, client):
@@ -47,13 +44,12 @@ class CutieMarksCommands:
 
     @commands.command(pass_context=True, aliases=['tt'])
     async def titupoy(self, ctx):
-        if await self.client.is_owner(ctx.message.author):
-            if ctx.message.channel.is_private is True:
-                return
-            await self.client.delete_message(ctx.message)
+        if ctx.message.channel.is_private is True:
+            return
+        await self.client.delete_message(ctx.message)
 
-            embed = await bot.cutiemark(self.client, ctx.message, '135140855982981121', DBtext[2])
-            await self.client.say(embed=embed)
+        embed = await bot.cutiemark(self.client, ctx.message, '135140855982981121', DBtext[2])
+        await self.client.say(embed=embed)
 
     # --------------- TupaHeyt mark ---------------
 

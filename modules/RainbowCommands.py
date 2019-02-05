@@ -7,14 +7,10 @@ import modules.Functions as bot
 localesign = 'RU'
 
 # Getting locale text for replies
-f = open('locale/DBtext'+localesign+'/RainbowCommands', encoding='utf-8')
-DBtext = ['null']
-DBtext.extend(f.read().splitlines())
-f.close()
+DBtext = bot.load_locale('RainbowCommands')
 
 rainbow_flag = True
 rrole = 'RAINBOW'
-
 
 class RainbowCommands:
     def __init__(self, client):

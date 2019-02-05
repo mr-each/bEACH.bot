@@ -5,10 +5,7 @@ import modules.Functions as bot
 localesign = 'RU'
 
 # Getting locale text for replies
-f = open('locale/DBtext'+localesign+'/ChatCommands', encoding='utf-8')
-DBtext = ['null']
-DBtext.extend(f.read().splitlines())
-f.close()
+DBtext = bot.load_locale('ChatCommands')
 
 class ChatCommands:
     def __init__(self, client):
@@ -108,8 +105,6 @@ class ChatCommands:
                 clr = message.author.color
             embed = await bot.newembed(self.client, user_id=message.author.id, content=message.content[2:], color=clr)
             await self.client.send_message(message.channel, embed=embed)
-
-
 
 def setup(client):
     client.add_cog(ChatCommands(client))

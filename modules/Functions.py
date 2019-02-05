@@ -10,11 +10,41 @@ from io import BytesIO
 
 localesign = 'RU'
 
-# Getting locale text for replies
-f = open('locale/DBtext'+localesign+'/Functions', encoding='utf-8')
-DBtext = ['null']
-DBtext.extend(f.read().splitlines())
-f.close()
+# --------------- File loading ---------------
+def load_token():
+    f = open('DBtoken.txt')
+    token = f.read()
+    f.close()
+    return token
+
+def load_locale(module_name):
+    f = open('locale/DBtext'+localesign+'/'+module_name, encoding='utf-8')
+    bot_locale = ['null']
+    bot_locale.extend(f.read().splitlines())
+    f.close()
+    return bot_locale
+
+DBtext = load_locale('Functions')
+
+def load_help_list():
+    help_list = {}
+    with open('locale/help'+localesign+'.txt', encoding='utf-8') as file:
+        for line in file:
+            key, value = line.split('+++')
+            value = value.replace('\n', '')
+            help_list[key] = value
+    return help_list
+
+def load_bullying_phrases():
+    bullying_phrases = {}
+    with open('locale/bullying'+localesign, encoding='utf-8') as file:
+        for line in file:
+            key, value = line.split('+++')
+            value = value.replace('\n', '')
+            bullying_phrases[key] = value
+    return bullying_phrases
+
+# --------------- Ownber chek ---------------
 
 def owner(ctx):
     return ctx.message.author.id == '135140855982981121'
@@ -55,6 +85,29 @@ async def cutiemark(client, message, memberid, text):
             clr = member.color
     embed = await newembed(client, user_id=memid, content=text, color = clr)
     return embed
+
+# --------------- Short help generation ---------------
+
+def create_help(client, f1=DBtext[1], f2=DBtext[2], f3=DBtext[3], f4=DBtext[4], f5=DBtext[5], f6=DBtext[6]):
+        helplist = load_help_list()
+        embed = discord.Embed(
+            description = helplist['prefix'],
+            color = discord.Color.green()
+        )
+        embed.set_author(name = helplist['title'], icon_url = client.user.avatar_url)
+        embed.add_field(inline=False, name=helplist['chatcmd'],  # Chat commands
+                            value = f1)
+        embed.add_field(inline=False, name=helplist['utilcmd'],  # Util commands
+                            value = f2)
+        embed.add_field(inline=False, name=helplist['rolecmd'],  # Role commands
+                            value = f3)
+        embed.add_field(inline=False, name=helplist['vbuckscmd'],  # V-bucks commands
+                            value = f4)
+        embed.add_field(inline=False, name=helplist['cutiemarkcmd'],  # Cutie mark commands
+                            value = f5)
+        embed.add_field(name=helplist['rainbowcmd'], inline=False,  # RAINBOW commands
+                            value = f6)
+        return embed
 
 # --------------- Deleting bot messages after short delay ---------------
 
@@ -107,7 +160,7 @@ async def level_up(client, users_list, server, channel, user):
     lvl_end = int(experience ** (1/4))
 
     if lvl_start < lvl_end:
-        await client.send_message(channel, DBtext[1].format(user.mention, lvl_end))
+        await client.send_message(channel, DBtext[7].format(user.mention, lvl_end))
         users_list[server.id][user.id]['level'] = lvl_end
         users_list[server.id][user.id]['experience'] = 0
         vbucks_coef = (lvl_end//5) + 1

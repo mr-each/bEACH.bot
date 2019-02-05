@@ -6,10 +6,7 @@ import modules.Functions as bot
 localesign = 'RU'
 
 # Getting locale text for replies
-f = open('locale/DBtext'+localesign+'/VBucksSystem', encoding='utf-8')
-DBtext = ['null']
-DBtext.extend(f.read().splitlines())
-f.close()
+DBtext = bot.load_locale('VBucksSystem')
 
 class VBucksSystem:
     def __init__(self, client):
@@ -59,7 +56,7 @@ class VBucksSystem:
     async def v_give(self, ctx):
         if ctx.message.channel.is_private is True:
             return
-        #await self.client.delete_message(ctx.message)
+        await self.client.delete_message(ctx.message)
         
         if len(ctx.message.content) < 33:
             msg = await self.client.say('Error!')
@@ -82,7 +79,6 @@ class VBucksSystem:
                 json.dump(users, f, indent=4, sort_keys=True)
 
             emoji = discord.utils.get(self.client.get_all_emojis(), name = 'bEACH_vbucks')
-            #await self.client.say("{} donated **{}**{} to {}!".format(ctx.message.author.mention, amount, emoji, target))
             await self.client.say(DBtext[7].format(ctx.message.author.mention, amount, emoji, target))
 
     # --------------- NAME ---------------
@@ -91,7 +87,7 @@ class VBucksSystem:
     async def v_info(self, ctx):
         if ctx.message.channel.is_private is True:
             return
-        #await self.client.delete_message(ctx.message)
+        await self.client.delete_message(ctx.message)
 
         server = ctx.message.server
         user = ctx.message.author

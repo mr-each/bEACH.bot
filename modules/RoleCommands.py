@@ -5,10 +5,7 @@ import modules.Functions as bot
 localesign = 'RU'
 
 # Getting locale text for replies
-f = open('locale/DBtext'+localesign+'/RoleCommands', encoding='utf-8')
-DBtext = ['null']
-DBtext.extend(f.read().splitlines())
-f.close()
+DBtext = bot.load_locale('RoleCommands')
 
 class RoleCommands:
     def __init__(self, client):

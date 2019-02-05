@@ -1,27 +1,21 @@
 import discord
 from discord.ext import commands
+import modules.Functions as bot
 
 localesign = 'RU'
 
 # Reading TOKEN from file
-f = open('DBtoken.txt')
-DBtoken = f.read()
-f.close()
+DBtoken = bot.load_token()
 
 # Getting locale text for replies
-f = open('locale/DBtext'+localesign+'/DiscordBot', encoding='utf-8')
-DBtext = ['null']
-DBtext.extend(f.read().splitlines())
-f.close()
+DBtext = bot.load_locale('DiscordBot')
 
 prefix = ['sr.', 'Sr.']
 
 client = commands.Bot(command_prefix = prefix)  # Command prefixes
 client.remove_command('help')  # Removing default HELP command
 
-helplist = {}
 last_help_message = None
-last_reaction = '💬'
 
 extensions = [
     'modules.ChatCommands',
@@ -56,11 +50,7 @@ if __name__ == '__main__':
             return
         await client.delete_message(ctx.message)
 
-        with open('locale/help'+localesign+'.txt', encoding='utf-8') as file:
-            for line in file:
-                key, value = line.split('+++')
-                value = value.replace('\n', '')
-                helplist[key] = value
+        helplist = bot.load_help_list()
         
         global last_help_message
 
@@ -69,23 +59,8 @@ if __name__ == '__main__':
         except Exception as error:
             print(str(error))
 
-        helpembed = discord.Embed(
-            description = helplist['prefix'],
-            color = discord.Color.green()
-        )
-        helpembed.set_author(name = helplist['title'], icon_url = client.user.avatar_url)
-        helpembed.add_field(inline=False, name=helplist['chatcmd'],  # Chat commands
-                            value = helplist['cc-clr'] + '\n' + helplist['cc-qt'] + '\n' + helplist['cc->>'])
-        helpembed.add_field(inline=False, name=helplist['utilcmd'],  # Util commands
-                            value = DBtext[2])
-        helpembed.add_field(inline=False, name=helplist['rolecmd'],  # Role commands
-                            value = DBtext[3])
-        helpembed.add_field(inline=False, name=helplist['vbuckscmd'],  # V-bucks commands
-                            value = DBtext[4])
-        helpembed.add_field(inline=False, name=helplist['cutiemarkcmd'],  # Cutie mark commands
-                            value = DBtext[5])
-        helpembed.add_field(name=helplist['rainbowcmd'], inline=False,  # RAINBOW commands
-                            value = DBtext[6])
+        value = helplist['cc-clr'] + '\n' + helplist['cc-qt'] + '\n' + helplist['cc->>']
+        helpembed = bot.create_help(client, f1=value)
         
         last_help_message = await client.say(embed=helpembed)
 
@@ -100,143 +75,41 @@ if __name__ == '__main__':
             return
         
         global last_help_message
-        global last_reaction
         vb_emoji = discord.utils.get(client.get_all_emojis(), name = 'bEACH_vbucks')
-        with open('locale/help'+localesign+'.txt', encoding='utf-8') as file:
-            for line in file:
-                key, value = line.split('+++')
-                value = value.replace('\n', '')
-                helplist[key] = value
+
+        helplist = bot.load_help_list()
         
         if reaction.message.id == last_help_message.id:
             await client.remove_reaction(reaction.message, reaction.emoji, user)
+            # Chat commands
             if reaction.emoji == '💬':
-                helpembed = discord.Embed(
-                    description = helplist['prefix'],
-                    color = discord.Color.green()
-                )
-                helpembed.set_author(name = helplist['title'], icon_url = client.user.avatar_url)
-                helpembed.add_field(inline=False, name=helplist['chatcmd'],  # Chat commands
-                                    value = helplist['cc-clr'] + '\n' + helplist['cc-qt'] + '\n' + helplist['cc->>'])
-                helpembed.add_field(inline=False, name=helplist['utilcmd'],  # Util commands
-                                    value = DBtext[2])
-                helpembed.add_field(inline=False, name=helplist['rolecmd'],  # Role commands
-                                    value = DBtext[3])
-                helpembed.add_field(inline=False, name=helplist['vbuckscmd'],  # V-bucks commands
-                                    value = DBtext[4])
-                helpembed.add_field(inline=False, name=helplist['cutiemarkcmd'],  # Cutie mark commands
-                                    value = DBtext[5])
-                helpembed.add_field(name=helplist['rainbowcmd'], inline=False,  # RAINBOW commands
-                                    value = DBtext[6])
-
-                last_reaction = reaction.emoji
+                value = helplist['cc-clr'] + '\n' + helplist['cc-qt'] + '\n' + helplist['cc->>']
+                helpembed = bot.create_help(client, f1=value)
                 await client.edit_message(last_help_message, embed=helpembed)
+            # Util commands
             elif reaction.emoji == '🇺':
-                helpembed = discord.Embed(
-                    description = helplist['prefix'],
-                    color = discord.Color.green()
-                )
-                helpembed.set_author(name = helplist['title'], icon_url = client.user.avatar_url)
-                helpembed.add_field(inline=False, name=helplist['chatcmd'],  # Chat commands
-                                    value = DBtext[1])
-                helpembed.add_field(inline=False, name=helplist['utilcmd'],  # Util commands
-                                    value = helplist['ut-bly'] + '\n' + helplist['ut-ab'] + '\n' + helplist['ut-ggl'] + '\n' + 
-                                            helplist['ut-rq'] + '\n' + helplist['ut-mgm'])
-                helpembed.add_field(inline=False, name=helplist['rolecmd'],  # Role commands
-                                    value = DBtext[3])
-                helpembed.add_field(inline=False, name=helplist['vbuckscmd'],  # V-bucks commands
-                                    value = DBtext[4])
-                helpembed.add_field(inline=False, name=helplist['cutiemarkcmd'],  # Cutie mark commands
-                                    value = DBtext[5])
-                helpembed.add_field(name=helplist['rainbowcmd'], inline=False,  # RAINBOW commands
-                                    value = DBtext[6])
-
-                last_reaction = reaction.emoji
+                value = helplist['ut-bly'] + '\n' + helplist['ut-ab'] + '\n' + helplist['ut-ggl'] + '\n' + helplist['ut-rq'] + '\n' + helplist['ut-mgm']
+                helpembed = bot.create_help(client, f2=value)
                 await client.edit_message(last_help_message, embed=helpembed)
+            # Role commands
             elif reaction.emoji == '⭐':
-                helpembed = discord.Embed(
-                    description = helplist['prefix'],
-                    color = discord.Color.green()
-                )
-                helpembed.set_author(name = helplist['title'], icon_url = client.user.avatar_url)
-                helpembed.add_field(inline=False, name=helplist['chatcmd'],  # Chat commands
-                                    value = DBtext[1])
-                helpembed.add_field(inline=False, name=helplist['utilcmd'],  # Util commands
-                                    value = DBtext[2])
-                helpembed.add_field(inline=False, name=helplist['rolecmd'],  # Role commands
-                                    value = helplist['rlc-ca'])
-                helpembed.add_field(inline=False, name=helplist['vbuckscmd'],  # V-bucks commands
-                                    value = DBtext[4])
-                helpembed.add_field(inline=False, name=helplist['cutiemarkcmd'],  # Cutie mark commands
-                                    value = DBtext[5])
-                helpembed.add_field(name=helplist['rainbowcmd'], inline=False,  # RAINBOW commands
-                                    value = DBtext[6])
-
-                last_reaction = reaction.emoji
+                value = helplist['rlc-ca']
+                helpembed = bot.create_help(client, f3=value)
                 await client.edit_message(last_help_message, embed=helpembed)
+            # V-bucks commands
             elif reaction.emoji == vb_emoji:
-                helpembed = discord.Embed(
-                    description = helplist['prefix'],
-                    color = discord.Color.green()
-                )
-                helpembed.set_author(name = helplist['title'], icon_url = client.user.avatar_url)
-                helpembed.add_field(inline=False, name=helplist['chatcmd'],  # Chat commands
-                                    value = DBtext[1])
-                helpembed.add_field(inline=False, name=helplist['utilcmd'],  # Util commands
-                                    value = DBtext[2])
-                helpembed.add_field(inline=False, name=helplist['rolecmd'],  # Role commands
-                                    value = DBtext[3])
-                helpembed.add_field(inline=False, name=helplist['vbuckscmd'],  # V-bucks commands
-                                    value = helplist['vb-inf'] + '\n' + helplist['vb-day'] + '\n' + helplist['vb-gv'])
-                helpembed.add_field(inline=False, name=helplist['cutiemarkcmd'],  # Cutie mark commands
-                                    value = DBtext[5])
-                helpembed.add_field(name=helplist['rainbowcmd'], inline=False,  # RAINBOW commands
-                                    value = DBtext[6])
-
-                last_reaction = reaction.emoji
+                value = helplist['vb-inf'] + '\n' + helplist['vb-day'] + '\n' + helplist['vb-gv']
+                helpembed = bot.create_help(client, f4=value)
                 await client.edit_message(last_help_message, embed=helpembed)
+            # Cutie mark commands
             elif reaction.emoji == '🦄':
-                helpembed = discord.Embed(
-                    description = helplist['prefix'],
-                    color = discord.Color.green()
-                )
-                helpembed.set_author(name = helplist['title'], icon_url = client.user.avatar_url)
-                helpembed.add_field(inline=False, name=helplist['chatcmd'],  # Chat commands
-                                    value = DBtext[1])
-                helpembed.add_field(inline=False, name=helplist['utilcmd'],  # Util commands
-                                    value = DBtext[2])
-                helpembed.add_field(inline=False, name=helplist['rolecmd'],  # Role commands
-                                    value = DBtext[3])
-                helpembed.add_field(inline=False, name=helplist['vbuckscmd'],  # V-bucks commands
-                                    value = DBtext[4])
-                helpembed.add_field(inline=False, name=helplist['cutiemarkcmd'],  # Cutie mark commands
-                                    value = helplist['cm-nb'] + '\n' + helplist['cm-tt']+ '\n' + helplist['cm-th'])
-                helpembed.add_field(name=helplist['rainbowcmd'], inline=False,  # RAINBOW commands
-                                    value = DBtext[6])
-
-                last_reaction = reaction.emoji
+                value = helplist['cm-nb'] + '\n' + helplist['cm-tt']+ '\n' + helplist['cm-th']
+                helpembed = bot.create_help(client, f5=value)
                 await client.edit_message(last_help_message, embed=helpembed)
-            elif reaction.emoji == '🏳️‍🌈':
-                helpembed = discord.Embed(
-                    description = helplist['prefix'],
-                    color = discord.Color.green()
-                )
-                helpembed.set_author(name = helplist['title'], icon_url = client.user.avatar_url)
-                helpembed.add_field(inline=False, name=helplist['chatcmd'],  # Chat commands
-                                    value = DBtext[1])
-                helpembed.add_field(inline=False, name=helplist['utilcmd'],  # Util commands
-                                    value = DBtext[2])
-                helpembed.add_field(inline=False, name=helplist['rolecmd'],  # Role commands
-                                    value = DBtext[3])
-                helpembed.add_field(inline=False, name=helplist['vbuckscmd'],  # V-bucks commands
-                                    value = DBtext[4])
-                helpembed.add_field(inline=False, name=helplist['cutiemarkcmd'],  # Cutie mark commands
-                                    value = DBtext[5])
-                helpembed.add_field(name=helplist['rainbowcmd'], inline=False,  # RAINBOW commands
-                        value = helplist['rc-mkr'] + '\n' + helplist['rc-gvr'] + '\n' + helplist['rc-stt'] + '\n' + 
-                                helplist['rc-stp'])
-
-                last_reaction = reaction.emoji
+            # RAINBOW commands
+            elif reaction.emoji == '🏳️‍🌈': 
+                value = helplist['rc-mkr'] + '\n' + helplist['rc-gvr'] + '\n' + helplist['rc-stt'] + '\n' + helplist['rc-stp']
+                helpembed = bot.create_help(client, f6=value)
                 await client.edit_message(last_help_message, embed=helpembed)
             else:
                 return
@@ -249,7 +122,7 @@ if __name__ == '__main__':
             return
 
         if message.channel.is_private is True:
-            await client.send_message(message.channel, DBtext[7])
+            await client.send_message(message.channel, DBtext[1])
             return
         
         await client.process_commands(message)

@@ -6,10 +6,7 @@ import modules.Functions as bot
 localesign = 'RU'
 
 # Getting locale text for replies
-f = open('locale/DBtext'+localesign+'/UtilityCommands', encoding='utf-8')
-DBtext = ['null']
-DBtext.extend(f.read().splitlines())
-f.close()
+DBtext = bot.load_locale('UtilityCommands')
 
 # Getting links
 f = open('linklist.txt', encoding='utf-8')
@@ -29,12 +26,8 @@ class UtilityCommands:
         await self.client.delete_message(ctx.message)
 
         # Getting phrases for bullying
-        bullying = {}
-        with open('locale/bullying'+localesign+'.txt', encoding='utf-8') as file:
-            for line in file:
-                key, value = line.split('+++')
-                value = value.replace('\n', '')
-                bullying[key] = value
+        bullying = bot.load_bullying_phrases()
+        print(bullying)
 
         if targetID == '':
             msg = await self.client.say(DBtext[1])
@@ -68,12 +61,7 @@ class UtilityCommands:
             msg = await self.client.say(DBtext[3])
             await bot.clear_last_selfmessage(self.client, msg, msg.channel)
         else:
-            bullying = {}
-            with open('locale/bullying'+localesign+'.txt', encoding='utf-8') as file:
-                for line in file:
-                    key, value = line.split('+++')
-                    value = value.replace('\n', '')
-                    bullying[key] = value
+            bullying = bot.load_bullying_phrases()
             f = open('locale/bullying' + localesign + '.txt', 'a', encoding='utf-8')
             f.write('\nbly'+str((len(bullying)//2))+'+++'+cnt)
             f.write('\nauth'+str((len(bullying)//2))+'+++'+ctx.message.author.name)

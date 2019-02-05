@@ -6,16 +6,11 @@ import modules.Functions as bot
 localesign = 'RU'
 
 # Getting locale text for replies
-f = open('locale/DBtext'+localesign+'/OwnerCommands', encoding='utf-8')
-DBtext = ['null']
-DBtext.extend(f.read().splitlines())
-f.close()
+DBtext = bot.load_locale('OwnerCommands')
 
 class OwnerCommands:
     def __init__(self, client):
         self.client = client
-
-    # --------------- NAME ---------------
     
     @commands.command(pass_context=True)
     @commands.check(bot.owner)
