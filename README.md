@@ -1,2 +1,2 @@
-# bEACH-bot
-Crazy attempts to make Discord-bot
+# bEACH.bot
+Crazy attempts to make Discord bot...

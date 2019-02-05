@@ -5,8 +5,9 @@ import modules.Functions as bot
 localesign = 'RU'
 
 # Getting locale text for replies
-f = open('locale/DBtext'+localesign+'.txt', encoding='utf-8')
-DBtext = f.read().splitlines()
+f = open('locale/DBtext'+localesign+'/ChatCommands', encoding='utf-8')
+DBtext = ['null']
+DBtext.extend(f.read().splitlines())
 f.close()
 
 class ChatCommands:
@@ -22,6 +23,7 @@ class ChatCommands:
         try:
             int(amount)
         except ValueError:
+            await self.client.delete_message(ctx.message)
             msg = await self.client.say(DBtext[1])
             await bot.clear_last_selfmessage(self.client, msg, msg.channel)
             return
@@ -32,20 +34,20 @@ class ChatCommands:
                 messages = []
                 async for message in self.client.logs_from(channel, limit=amount+1):
                     messages.append(message)
-                print(messages)
                 try:
                     await self.client.delete_messages(messages)
                 except Exception as error:
-                    msg = await self.client.say(DBtext[20] + ' ' + str(error))
+                    msg = await self.client.say(DBtext[2] + ' ' + str(error))
                     await bot.clear_last_selfmessage(self.client, msg, msg.channel)
                     return
-                msg = await self.client.say('**' + str(len(messages)-1) + DBtext[2])
+                msg = await self.client.say(DBtext[3].format(len(messages)-1))
                 await bot.clear_last_selfmessage(self.client, msg, msg.channel)
             else:
-                msg = await self.client.say(DBtext[3])
+                await self.client.delete_message(ctx.message)
+                msg = await self.client.say(DBtext[4])
                 await bot.clear_last_selfmessage(self.client, msg, msg.channel)
         else:
-            msg = await self.client.say(DBtext[4])
+            msg = await self.client.say(DBtext[5])
             await bot.clear_last_selfmessage(self.client, msg, msg.channel)
 
     # --------------- Command for quoting messages ---------------
@@ -55,18 +57,24 @@ class ChatCommands:
         if ctx.message.channel.is_private is True:
             return
         await self.client.delete_message(ctx.message)
+
         if len(ctx.message.content) > 44:
-            cmd, chnlID, msgID = ctx.message.content.split()  # Getting channel and message ID of source message
-            chnlID = bot.clrCHID(chnlID)  # Clearing channel ID from mention
+            try:
+                chnlID, msgID = ctx.message.content.split()[1:]  # Getting channel and message ID of source message
+            except Exception as error:
+                msg = await self.client.say(DBtext[6])
+                await bot.clear_last_selfmessage(self.client, msg, msg.channel)
+                return
+            chnlID = bot.clear_channel_ID(chnlID)  # Clearing channel ID from mention
             chnl_from = self.client.get_channel(chnlID)
             if chnl_from is None:
-                msg = await self.client.say(DBtext[22])
+                msg = await self.client.say(DBtext[7])
                 await bot.clear_last_selfmessage(self.client, msg, msg.channel)
                 return
             try:
                 msg = await self.client.get_message(chnl_from, msgID)
             except discord.NotFound:
-                msg = await self.client.say(DBtext[23])
+                msg = await self.client.say(DBtext[8])
                 await bot.clear_last_selfmessage(self.client, msg, msg.channel)
                 return
             mvembed = discord.Embed(
@@ -83,18 +91,13 @@ class ChatCommands:
 
             await self.client.say(embed=mvembed)
         else:
-            msg = await self.client.say(DBtext[21])
+            msg = await self.client.say(DBtext[6])
             await bot.clear_last_selfmessage(self.client, msg, msg.channel)
 
-    # --------------- Command for making embedded messages ---------------
+    # --------------- Event for making embedded messages ---------------
 
     async def on_message(self, message):
-        if message.channel.is_private is True:
-            return
-            #await self.client.send_message(message.author, "If you want to continue send me your Discord login, password, your credit card number and it's CVV/CVC code")
-
-
-        if message.author == self.client.user:
+        if (message.author == self.client.user) or (message.channel.is_private is True):
             return
 
         if message.content.startswith('>>'):
@@ -105,6 +108,8 @@ class ChatCommands:
                 clr = message.author.color
             embed = await bot.newembed(self.client, user_id=message.author.id, content=message.content[2:], color=clr)
             await self.client.send_message(message.channel, embed=embed)
+
+
 
 def setup(client):
     client.add_cog(ChatCommands(client))
