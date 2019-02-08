@@ -55,41 +55,38 @@ class ChatCommands:
             return
         await self.client.delete_message(ctx.message)
 
-        if len(ctx.message.content) > 44:
-            try:
-                chnlID, msgID = ctx.message.content.split()[1:]  # Getting channel and message ID of source message
-            except Exception as error:
-                msg = await self.client.say(DBtext[6])
-                await bot.clear_last_selfmessage(self.client, msg, msg.channel)
-                return
-            chnlID = bot.clear_channel_ID(chnlID)  # Clearing channel ID from mention
-            chnl_from = self.client.get_channel(chnlID)
-            if chnl_from is None:
-                msg = await self.client.say(DBtext[7])
-                await bot.clear_last_selfmessage(self.client, msg, msg.channel)
-                return
-            try:
-                msg = await self.client.get_message(chnl_from, msgID)
-            except discord.NotFound:
-                msg = await self.client.say(DBtext[8])
-                await bot.clear_last_selfmessage(self.client, msg, msg.channel)
-                return
-            mvembed = discord.Embed(
-                description = msg.content,
-                timestamp = msg.timestamp,
-                color = discord.Color.blue()
-            )
-            mvembed.set_footer(text='#'+chnl_from.name)
-            mvembed.set_author(name=msg.author.name, icon_url=msg.author.avatar_url)
-            # Getting attachment url if exist
-            if msg.attachments != []:
-                attch = msg.attachments.pop().get('url')
-                mvembed.set_image(url=attch)
-
-            await self.client.say(embed=mvembed)
-        else:
+        try:
+            chnlID, msgID = ctx.message.content.split()[1:]  # Getting channel and message ID of source message
+        except Exception:
             msg = await self.client.say(DBtext[6])
             await bot.clear_last_selfmessage(self.client, msg, msg.channel)
+            return
+        chnlID = bot.clear_channel_ID(chnlID)  # Clearing channel ID from mention
+        chnl_from = self.client.get_channel(chnlID)
+        if chnl_from is None:
+            msg = await self.client.say(DBtext[7])
+            await bot.clear_last_selfmessage(self.client, msg, msg.channel)
+            return
+        try:
+            msg = await self.client.get_message(chnl_from, msgID)
+        except discord.NotFound:
+            msg = await self.client.say(DBtext[8])
+            await bot.clear_last_selfmessage(self.client, msg, msg.channel)
+            return
+        mvembed = discord.Embed(
+            description = msg.content,
+            timestamp = msg.timestamp,
+            color = discord.Color.blue()
+        )
+        mvembed.set_footer(text='#'+chnl_from.name)
+        mvembed.set_author(name=msg.author.name, icon_url=msg.author.avatar_url)
+        # Getting attachment url if exist
+        if msg.attachments != []:
+            attch = msg.attachments.pop().get('url')
+            mvembed.set_image(url=attch)
+
+        await self.client.say(embed=mvembed)
+
 
     # --------------- Event for making embedded messages ---------------
 
