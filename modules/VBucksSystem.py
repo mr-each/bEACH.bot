@@ -57,29 +57,59 @@ class VBucksSystem:
         if ctx.message.channel.is_private is True:
             return
         await self.client.delete_message(ctx.message)
-        
-        if len(ctx.message.content) < 33:
-            msg = await self.client.say('Error!')
+
+        server = ctx.message.server
+        author = ctx.message.author
+        # Checking command's arguments
+        try:
+            target, amount = ctx.message.content.split()[1:]
+        except Exception:
+            msg = await self.client.say(DBtext[5])
             await bot.clear_last_selfmessage(self.client, msg, msg.channel)
-        else:
-            try:
-                target, amount = ctx.message.content.split()[1:]
-            except Exception as error:
-                msg = await self.client.say('error: '+ error)
-                await bot.clear_last_selfmessage(self.client, msg, msg.channel)
-                return
-            user_id = bot.clear_user_ID(target)
+            return
+        user_id = bot.clear_user_ID(target)
+        # Checking for user existence
+        try:
             user = await self.client.get_user_info(user_id)
+        except Exception:
+            msg = await self.client.say(DBtext[6])
+            await bot.clear_last_selfmessage(self.client, msg, msg.channel)
+            return
+        # Checking if target is message author
+        if user == author:
+            msg = await self.client.say(DBtext[7])
+            await bot.clear_last_selfmessage(self.client, msg, msg.channel)
+            return
+        # Checking for integer amount value
+        try:
+            int(amount)
+        except Exception:
+            msg = await self.client.say(DBtext[8])
+            await bot.clear_last_selfmessage(self.client, msg, msg.channel)
+            return
+        with open('users.json', 'r') as f:
+            users = json.load(f)
+        # Checking author's currency status
+        if int(amount) > users[server.id][ctx.message.author.id]['vbucks']:
+            msg = await self.client.say(DBtext[9])
+            await bot.clear_last_selfmessage(self.client, msg, msg.channel)
+            return
+        # Checking if ammount is positive number
+        if int(amount) < 1:
+            msg = await self.client.say(DBtext[10])
+            await bot.clear_last_selfmessage(self.client, msg, msg.channel)
+            return
 
-            with open('users.json', 'r') as f:
-                users = json.load(f)
-            await bot.add_vbucks(self.client, users, ctx.message.server, ctx.message.author, int(amount)*(-1))
-            await bot.add_vbucks(self.client, users, ctx.message.server, user, int(amount))
-            with open('users.json', 'w') as f:
-                json.dump(users, f, indent=4, sort_keys=True)
+        await bot.add_vbucks(self.client, users, server, author, int(amount)*(-1))
+        await bot.add_vbucks(self.client, users, server, user, int(amount))
+        with open('users.json', 'w') as f:
+            json.dump(users, f, indent=4, sort_keys=True)
 
-            emoji = discord.utils.get(self.client.get_all_emojis(), name = 'bEACH_vbucks')
-            await self.client.say(DBtext[7].format(ctx.message.author.mention, amount, emoji, target))
+        emoji = discord.utils.get(self.client.get_all_emojis(), name = 'bEACH_vbucks')
+        msg = await self.client.say(DBtext[11].format(author.mention, int(amount), emoji, target))
+        if user != self.client.user:
+            await self.client.send_message(user, DBtext[12].format(author.mention, int(amount), emoji, server.name))
+        await bot.clear_last_selfmessage(self.client, msg, msg.channel)
 
     # --------------- NAME ---------------
     
@@ -92,7 +122,7 @@ class VBucksSystem:
         server = ctx.message.server
         user = ctx.message.author
         with open('users.json', 'r') as f:
-                users = json.load(f)
+            users = json.load(f)
         
         #Database update in case the user is not there
         if (not server.id in users) or (not user.id in users[server.id]):
@@ -103,9 +133,9 @@ class VBucksSystem:
         emoji = discord.utils.get(self.client.get_all_emojis(), name = 'bEACH_vbucks')
         infoembed = discord.Embed(
             description=
-            DBtext[8].format(users[server.id][user.id]['level']) + '\n' +
-            DBtext[9].format(users[server.id][user.id]['experience']+5,exp_needed) + '\n' +
-            DBtext[10].format(users[server.id][user.id]['vbucks'],emoji)
+            DBtext[13].format(users[server.id][user.id]['level']) + '\n' +
+            DBtext[14].format(users[server.id][user.id]['experience'],exp_needed) + '\n' +
+            DBtext[15].format(users[server.id][user.id]['vbucks'],emoji)
             ,
             color=discord.Color.dark_orange()
         )
@@ -114,8 +144,8 @@ class VBucksSystem:
         if ctx.message.server.icon is None:
             icon = discord.Embed.Empty
         else:
-            icon = DBtext[11].format(server.id,server.icon)
-        infoembed.set_footer(text = DBtext[12].format(server.name), icon_url = icon)
+            icon = DBtext[16].format(server.id,server.icon)
+        infoembed.set_footer(text = DBtext[17].format(server.name), icon_url = icon)
         
         await self.client.say(embed = infoembed)
     
@@ -139,14 +169,16 @@ class VBucksSystem:
     async def on_message(self, message):
         if (message.author == self.client.user) or (message.channel.is_private is True):
             return
-        
+
         if message.author.bot is True:
             return
+
         else:
             with open('users.json', 'r') as f:
                 users = json.load(f)
 
             await bot.update_data(users, message.server, message.author)
+            await bot.spam_cooldown(self.client, users, message)
             await bot.add_experience(users, message.server, message.author, 5)
             await bot.level_up(self.client, users, message.server, message.channel, message.author)
             

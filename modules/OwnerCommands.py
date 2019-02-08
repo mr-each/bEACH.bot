@@ -14,6 +14,35 @@ class OwnerCommands:
     
     @commands.command(pass_context=True)
     @commands.check(bot.owner)
+    async def update_db(self, ctx):
+        if ctx.message.channel.is_private is True:
+            return
+        await self.client.delete_message(ctx.message)
+
+        server = ctx.message.server
+        members = server.members
+        with open('users.json', 'r') as f:
+            users = json.load(f)
+        if not server.id in users:
+            users[server.id] = {}
+        for user in members:
+            if user.bot is False:
+                if user.id in users[server.id]:
+                    users[server.id][user.id]['name'] = user.name
+                    if not 'experience' in users[server.id][user.id]:
+                        users[server.id][user.id]['experience'] = 0
+                    if not 'level' in users[server.id][user.id]:
+                        users[server.id][user.id]['level'] = 1
+                    if not 'vbucks' in users[server.id][user.id]:
+                        users[server.id][user.id]['vbucks'] = 0
+                    if not 'cooldown' in users[server.id][user.id]:
+                        users[server.id][user.id]['cooldown'] = 0
+                    
+        with open('users.json', 'w') as f:
+            json.dump(users, f, indent=4, sort_keys=True)
+
+    @commands.command(pass_context=True)
+    @commands.check(bot.owner)
     async def change_bot_name(self, ctx, name):
         if ctx.message.channel.is_private is True:
             return
