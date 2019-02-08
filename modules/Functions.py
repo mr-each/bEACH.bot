@@ -3,6 +3,8 @@ import asyncio
 from PIL import Image, ImageDraw, ImageOps
 import requests
 from io import BytesIO
+import json
+from datetime import datetime, time, timedelta
 
 #import random
 #from discord.ext import commands
@@ -11,11 +13,12 @@ from io import BytesIO
 localesign = 'RU'
 
 # --------------- File loading ---------------
-def load_token():
-    f = open('DBtoken.txt')
-    token = f.read()
-    f.close()
-    return token
+def load_config():
+    with open('config.json', 'r', encoding='utf-8') as f:
+        config = json.load(f)
+    return config
+
+config = load_config()
 
 def load_locale(module_name):
     f = open('locale/DBtext'+localesign+'/'+module_name, encoding='utf-8')
@@ -27,13 +30,17 @@ def load_locale(module_name):
 DBtext = load_locale('Functions')
 
 def load_help_list():
-    help_list = {}
-    with open('locale/help'+localesign+'.txt', encoding='utf-8') as file:
-        for line in file:
-            key, value = line.split('+++')
-            value = value.replace('\n', '')
-            help_list[key] = value
+    with open('locale/helpRU.json', 'r', encoding='utf-8') as f:
+        help_list = json.load(f)
     return help_list
+
+def load_help_commands(segment):
+    with open('locale/helpRU.json', 'r', encoding='utf-8') as f:
+        help_list = json.load(f)
+    string = ''
+    for cmd in help_list[segment+'-cmd']:
+        string += cmd
+    return string
 
 def load_bullying_phrases():
     bullying_phrases = {}
@@ -47,7 +54,7 @@ def load_bullying_phrases():
 # --------------- Ownber chek ---------------
 
 def owner(ctx):
-    return ctx.message.author.id == '135140855982981121'
+    return ctx.message.author.id == config['owner']
 
 # --------------- Clearing Channel and User IDs ---------------
 
@@ -95,17 +102,17 @@ def create_help(client, f1=DBtext[1], f2=DBtext[2], f3=DBtext[3], f4=DBtext[4], 
             color = discord.Color.green()
         )
         embed.set_author(name = helplist['title'], icon_url = client.user.avatar_url)
-        embed.add_field(inline=False, name=helplist['chatcmd'],  # Chat commands
+        embed.add_field(inline=False, name=helplist['chat'],  # Chat commands
                             value = f1)
-        embed.add_field(inline=False, name=helplist['utilcmd'],  # Util commands
+        embed.add_field(inline=False, name=helplist['util'],  # Util commands
                             value = f2)
-        embed.add_field(inline=False, name=helplist['rolecmd'],  # Role commands
+        embed.add_field(inline=False, name=helplist['role'],  # Role commands
                             value = f3)
-        embed.add_field(inline=False, name=helplist['vbuckscmd'],  # V-bucks commands
+        embed.add_field(inline=False, name=helplist['vbucks'],  # V-bucks commands
                             value = f4)
-        embed.add_field(inline=False, name=helplist['cutiemarkcmd'],  # Cutie mark commands
+        embed.add_field(inline=False, name=helplist['cutiemark'],  # Cutie mark commands
                             value = f5)
-        embed.add_field(name=helplist['rainbowcmd'], inline=False,  # RAINBOW commands
+        embed.add_field(name=helplist['rainbow'], inline=False,  # RAINBOW commands
                             value = f6)
         return embed
 
@@ -145,14 +152,22 @@ async def update_data(users_list, server, user):
         users_list[server.id] = {}
     if not user.id in users_list[server.id]:
         users_list[server.id][user.id] = {}
+        users_list[server.id][user.id]['name'] = user.name
         users_list[server.id][user.id]['experience'] = 0
         users_list[server.id][user.id]['level'] = 1
         users_list[server.id][user.id]['vbucks'] = 0
+        users_list[server.id][user.id]['cooldown'] = 0
 
 # --------------- Level ---------------
 
 async def add_experience(users_list, server, user, exp):
-    users_list[server.id][user.id]['experience'] += exp
+    if users_list[server.id][user.id]['cooldown'] == 0:
+        users_list[server.id][user.id]['experience'] += exp
+    else:
+        cooldown_check = datetime.utcnow() - timedelta(seconds = 30) # For how long the cooldown will be
+        if users_list[server.id][user.id]['cooldown'] < int(cooldown_check.timestamp()):
+            users_list[server.id][user.id]['cooldown'] = 0
+            users_list[server.id][user.id]['experience'] += exp
 
 async def level_up(client, users_list, server, channel, user):
     experience = users_list[server.id][user.id]['experience']
@@ -160,11 +175,28 @@ async def level_up(client, users_list, server, channel, user):
     lvl_end = int(experience ** (1/4))
 
     if lvl_start < lvl_end:
-        await client.send_message(channel, DBtext[7].format(user.mention, lvl_end))
         users_list[server.id][user.id]['level'] = lvl_end
         users_list[server.id][user.id]['experience'] = 0
-        vbucks_coef = (lvl_end//5) + 1
+        vbucks_coef = (lvl_end*5) - 5
         users_list[server.id][user.id]['vbucks'] += vbucks_coef*5
+        msg = await client.send_message(channel, DBtext[7].format(user.mention, lvl_end))
+        await clear_last_selfmessage(client, msg, msg.channel)
+
+async def spam_cooldown(client, users, message):
+    messages = []
+    timestamp = datetime.utcnow() - timedelta(seconds=30)
+    async for log_message in client.logs_from(message.channel, after = timestamp):
+                messages.append(log_message)
+    server = message.server
+    user = message.author
+    counter = 0
+    for log_message in messages:
+        if log_message.author.id == message.author.id:
+            counter += 1
+    if counter > 5 and users[server.id][user.id]['cooldown'] == 0: # How many messages triggers cooldown
+        users[server.id][user.id]['cooldown'] = int(message.timestamp.timestamp())
+        msg = await client.send_message(message.channel, DBtext[8].format(message.author.mention))
+        await clear_last_selfmessage(client, msg, msg.channel, 7)
         
 # --------------- V-Bucks ---------------
 

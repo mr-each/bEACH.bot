@@ -1,11 +1,13 @@
 import discord
 from discord.ext import commands
 import modules.Functions as bot
+import json
 
 localesign = 'RU'
 
 # Reading TOKEN from file
-DBtoken = bot.load_token()
+config = bot.load_config()
+DBtoken = config['token']
 
 # Getting locale text for replies
 DBtext = bot.load_locale('DiscordBot')
@@ -49,22 +51,30 @@ if __name__ == '__main__':
         if ctx.message.channel.is_private is True:
             return
         await client.delete_message(ctx.message)
-
-        helplist = bot.load_help_list()
         
         global last_help_message
 
         try:
+            channel_id, message_id = config['last_help_message'][ctx.message.server.id]
+            channel = client.get_channel(channel_id)
+            last_help_message = await client.get_message(channel, message_id)
+        except Exception as error:
+            print('There is no message [{}]'.format(error))
+
+        try:
             await client.delete_message(last_help_message)
         except Exception as error:
-            print(str(error))
+            print("Can't delete message [{}]".format(error))
 
-        value = helplist['cc-clr'] + '\n' + helplist['cc-qt'] + '\n' + helplist['cc->>']
+        value = bot.load_help_commands('chat')
         helpembed = bot.create_help(client, f1=value)
-        
-        last_help_message = await client.say(embed=helpembed)
+        msg = await client.say(embed=helpembed)
+        last_help_message = await client.get_message(msg.channel, msg.id)
+        config['last_help_message'][msg.server.id] = [msg.channel.id, msg.id]
+        with open('config.json', 'w') as f:
+            json.dump(config, f, indent=4, sort_keys=True)
 
-        vb_emoji= discord.utils.get(client.get_all_emojis(), name = 'bEACH_vbucks')
+        vb_emoji = discord.utils.get(client.get_all_emojis(), name = 'bEACH_vbucks')
         emojis = ['💬','🇺','⭐', vb_emoji, '🦄', '🏳️‍🌈']
         for emoji in emojis:
             await client.add_reaction(last_help_message, emoji)
@@ -76,39 +86,37 @@ if __name__ == '__main__':
         
         global last_help_message
         vb_emoji = discord.utils.get(client.get_all_emojis(), name = 'bEACH_vbucks')
-
-        helplist = bot.load_help_list()
         
         if reaction.message.id == last_help_message.id:
             await client.remove_reaction(reaction.message, reaction.emoji, user)
             # Chat commands
             if reaction.emoji == '💬':
-                value = helplist['cc-clr'] + '\n' + helplist['cc-qt'] + '\n' + helplist['cc->>']
+                value = bot.load_help_commands('chat')
                 helpembed = bot.create_help(client, f1=value)
                 await client.edit_message(last_help_message, embed=helpembed)
             # Util commands
             elif reaction.emoji == '🇺':
-                value = helplist['ut-bly'] + '\n' + helplist['ut-ab'] + '\n' + helplist['ut-ggl'] + '\n' + helplist['ut-rq'] + '\n' + helplist['ut-mgm']
+                value = bot.load_help_commands('util')
                 helpembed = bot.create_help(client, f2=value)
                 await client.edit_message(last_help_message, embed=helpembed)
             # Role commands
             elif reaction.emoji == '⭐':
-                value = helplist['rlc-ca']
+                value = bot.load_help_commands('role')
                 helpembed = bot.create_help(client, f3=value)
                 await client.edit_message(last_help_message, embed=helpembed)
             # V-bucks commands
             elif reaction.emoji == vb_emoji:
-                value = helplist['vb-inf'] + '\n' + helplist['vb-day'] + '\n' + helplist['vb-gv']
+                value = bot.load_help_commands('vbucks')
                 helpembed = bot.create_help(client, f4=value)
                 await client.edit_message(last_help_message, embed=helpembed)
             # Cutie mark commands
             elif reaction.emoji == '🦄':
-                value = helplist['cm-nb'] + '\n' + helplist['cm-tt']+ '\n' + helplist['cm-th']
+                value = bot.load_help_commands('cutiemark')
                 helpembed = bot.create_help(client, f5=value)
                 await client.edit_message(last_help_message, embed=helpembed)
             # RAINBOW commands
             elif reaction.emoji == '🏳️‍🌈': 
-                value = helplist['rc-mkr'] + '\n' + helplist['rc-gvr'] + '\n' + helplist['rc-stt'] + '\n' + helplist['rc-stp']
+                value = bot.load_help_commands('rainbow')
                 helpembed = bot.create_help(client, f6=value)
                 await client.edit_message(last_help_message, embed=helpembed)
             else:
