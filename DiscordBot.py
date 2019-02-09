@@ -58,13 +58,12 @@ if __name__ == '__main__':
             channel_id, message_id = config['last_help_message'][ctx.message.server.id]
             channel = client.get_channel(channel_id)
             last_help_message = await client.get_message(channel, message_id)
+            try:
+                await client.delete_message(last_help_message)
+            except Exception as error:
+                print("Can't delete message [{}]".format(error))
         except Exception as error:
             print('There is no message [{}]'.format(error))
-
-        try:
-            await client.delete_message(last_help_message)
-        except Exception as error:
-            print("Can't delete message [{}]".format(error))
 
         value = bot.load_help_commands('chat')
         helpembed = bot.create_help(client, f1=value)
@@ -132,7 +131,7 @@ if __name__ == '__main__':
         if message.channel.is_private is True:
             await client.send_message(message.channel, DBtext[1])
             return
-        
+
         await client.process_commands(message)
 
     client.run(DBtoken)

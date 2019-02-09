@@ -54,7 +54,7 @@ class UtilityCommands:
             return
         try:
             cnt = ctx.message.content.split(' ', 1).pop(1)
-        except Exception as error:
+        except Exception:
             msg = await self.client.say(DBtext[3])
             await bot.clear_last_selfmessage(self.client, msg, msg.channel)
         if cnt == '':

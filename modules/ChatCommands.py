@@ -87,7 +87,6 @@ class ChatCommands:
 
         await self.client.say(embed=mvembed)
 
-
     # --------------- Event for making embedded messages ---------------
 
     async def on_message(self, message):

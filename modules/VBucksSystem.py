@@ -29,7 +29,7 @@ class VBucksSystem:
 
         emoji = discord.utils.get(self.client.get_all_emojis(), name = 'bEACH_vbucks')
         msg = await self.client.say(DBtext[1].format(amount, emoji))
-        await bot.clear_last_selfmessage(self.client, msg, msg.channel, 5)
+        await bot.clear_last_selfmessage(self.client, msg, msg.channel)
 
         with open('users.json', 'w') as f:
             json.dump(users, f, indent=4, sort_keys=True)
@@ -99,6 +99,11 @@ class VBucksSystem:
             msg = await self.client.say(DBtext[10])
             await bot.clear_last_selfmessage(self.client, msg, msg.channel)
             return
+        # Checking target existence in DB
+        if not user.id in users:
+            msg = await self.client.say(DBtext[11])
+            await bot.clear_last_selfmessage(self.client, msg, msg.channel)
+            return
 
         await bot.add_vbucks(self.client, users, server, author, int(amount)*(-1))
         await bot.add_vbucks(self.client, users, server, user, int(amount))
@@ -106,9 +111,9 @@ class VBucksSystem:
             json.dump(users, f, indent=4, sort_keys=True)
 
         emoji = discord.utils.get(self.client.get_all_emojis(), name = 'bEACH_vbucks')
-        msg = await self.client.say(DBtext[11].format(author.mention, int(amount), emoji, target))
+        msg = await self.client.say(DBtext[12].format(author.mention, int(amount), emoji, target))
         if user != self.client.user:
-            await self.client.send_message(user, DBtext[12].format(author.mention, int(amount), emoji, server.name))
+            await self.client.send_message(user, DBtext[13].format(author.mention, int(amount), emoji, server.name))
         await bot.clear_last_selfmessage(self.client, msg, msg.channel)
 
     # --------------- NAME ---------------
@@ -133,9 +138,9 @@ class VBucksSystem:
         emoji = discord.utils.get(self.client.get_all_emojis(), name = 'bEACH_vbucks')
         infoembed = discord.Embed(
             description=
-            DBtext[13].format(users[server.id][user.id]['level']) + '\n' +
-            DBtext[14].format(users[server.id][user.id]['experience'],exp_needed) + '\n' +
-            DBtext[15].format(users[server.id][user.id]['vbucks'],emoji)
+            DBtext[14].format(users[server.id][user.id]['level']) + '\n' +
+            DBtext[15].format(users[server.id][user.id]['experience'],exp_needed) + '\n' +
+            DBtext[16].format(users[server.id][user.id]['vbucks'],emoji)
             ,
             color=discord.Color.dark_orange()
         )
@@ -144,8 +149,8 @@ class VBucksSystem:
         if ctx.message.server.icon is None:
             icon = discord.Embed.Empty
         else:
-            icon = DBtext[16].format(server.id,server.icon)
-        infoembed.set_footer(text = DBtext[17].format(server.name), icon_url = icon)
+            icon = DBtext[17].format(server.id,server.icon)
+        infoembed.set_footer(text = DBtext[18].format(server.name), icon_url = icon)
         
         await self.client.say(embed = infoembed)
     
@@ -173,6 +178,8 @@ class VBucksSystem:
         if message.author.bot is True:
             return
 
+        if message.content.startswith('sr.') or message.content.startswith('Sr.'):
+            pass
         else:
             with open('users.json', 'r') as f:
                 users = json.load(f)
